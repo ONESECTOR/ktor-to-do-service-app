@@ -1,0 +1,33 @@
+ktor:
+  deployment:
+    port: 8080
+    watch:
+      - classes
+  application:
+    modules:
+      - com.example.ApplicationKt.module
+
+  server:
+    requestQueueLimit: 512
+    pipelining: true
+
+  cors:
+    anyHost: true
+
+  serialization:
+    json:
+      prettyPrint: true
+      isLenient: true
+      ignoreUnknownKeys: true
+
+  logging:
+    level: INFO
+
+  status-pages:
+    enabled: true
+
+  database:
+    driver: org.h2.Driver
+    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+    user: root
+    password: root
