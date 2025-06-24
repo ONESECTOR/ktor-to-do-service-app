@@ -33,11 +33,18 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging:${ktor_version}")
     implementation("io.ktor:ktor-server-status-pages:${ktor_version}")
     implementation("io.ktor:ktor-server-auth:${ktor_version}")
+    implementation("io.ktor:ktor-server-auth-jwt:${ktor_version}")
     implementation("io.ktor:ktor-server-cors:${ktor_version}")
+    
+    // Database
     implementation("org.jetbrains.exposed:exposed-core:${exposed_version}")
     implementation("org.jetbrains.exposed:exposed-dao:${exposed_version}")
     implementation("org.jetbrains.exposed:exposed-jdbc:${exposed_version}")
     implementation("com.h2database:h2:${h2_version}")
+    
+    // Security
+    implementation("com.auth0:java-jwt:4.4.0")
+    implementation("org.mindrot:jbcrypt:0.4")
 
     implementation("ch.qos.logback:logback-classic:${logback_version}")
 }

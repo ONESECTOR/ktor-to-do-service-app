@@ -2,6 +2,7 @@ package com.example.controllers
 
 import com.example.models.Task
 import com.example.services.TaskService
+import com.example.utils.getCurrentUser
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -12,11 +13,23 @@ class TaskController {
     private val taskService = TaskService()
 
     suspend fun getAll(call: ApplicationCall) {
-        val tasks = taskService.getAll()
+        val currentUser = call.getCurrentUser()
+        if (currentUser == null) {
+            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            return
+        }
+        
+        val tasks = taskService.getAll(currentUser.userId)
         call.respond(tasks)
     }
 
     suspend fun getById(call: ApplicationCall) {
+        val currentUser = call.getCurrentUser()
+        if (currentUser == null) {
+            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            return
+        }
+        
         val id = call.parameters["id"]?.toIntOrNull()
         
         if (id == null) {
@@ -24,7 +37,7 @@ class TaskController {
             return
         }
         
-        val task = taskService.getById(id)
+        val task = taskService.getById(id, currentUser.userId)
         if (task != null) {
             call.respond(task)
         } else {
@@ -33,9 +46,15 @@ class TaskController {
     }
 
     suspend fun create(call: ApplicationCall) {
+        val currentUser = call.getCurrentUser()
+        if (currentUser == null) {
+            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            return
+        }
+        
         try {
             val inputTask = call.receive<Task>()
-            val createdTask = taskService.create(inputTask)
+            val createdTask = taskService.create(inputTask, currentUser.userId)
             call.respond(HttpStatusCode.Created, createdTask)
         } catch (e: Exception) {
             call.respond(HttpStatusCode.BadRequest, "Invalid task data")
@@ -43,6 +62,12 @@ class TaskController {
     }
 
     suspend fun update(call: ApplicationCall) {
+        val currentUser = call.getCurrentUser()
+        if (currentUser == null) {
+            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            return
+        }
+        
         val id = call.parameters["id"]?.toIntOrNull()
         
         if (id == null) {
@@ -52,11 +77,15 @@ class TaskController {
         
         try {
             val updatedTask = call.receive<Task>()
-            val success = taskService.update(id, updatedTask)
+            val success = taskService.update(id, updatedTask, currentUser.userId)
             
             if (success) {
-                val task = taskService.getById(id)
-                call.respond(task!!)
+                val task = taskService.getById(id, currentUser.userId)
+                if (task != null) {
+                    call.respond(task)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Task not found")
+                }
             } else {
                 call.respond(HttpStatusCode.NotFound, "Task not found")
             }
@@ -66,6 +95,12 @@ class TaskController {
     }
 
     suspend fun delete(call: ApplicationCall) {
+        val currentUser = call.getCurrentUser()
+        if (currentUser == null) {
+            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            return
+        }
+        
         val id = call.parameters["id"]?.toIntOrNull()
         
         if (id == null) {
@@ -73,7 +108,7 @@ class TaskController {
             return
         }
         
-        val success = taskService.delete(id)
+        val success = taskService.delete(id, currentUser.userId)
         if (success) {
             call.respond(HttpStatusCode.NoContent)
         } else {

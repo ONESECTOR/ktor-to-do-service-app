@@ -1,14 +1,18 @@
 package com.example
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.example.controllers.AuthController
 import com.example.controllers.TaskController
 import com.example.database.factory.DatabaseFactory
-import com.example.routes.authRoutes
-import com.example.routes.taskRoutes
 import com.example.services.AuthService
+import com.example.utils.configureAuthRoutes
+import com.example.utils.configureTaskRoutes
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
@@ -34,6 +38,29 @@ fun Application.module() {
     install(plugin = ContentNegotiation) {
         json()
     }
+    
+    install(Authentication) {
+        jwt("auth-jwt") {
+            verifier(
+                JWT.require(Algorithm.HMAC256("your-secret-key"))
+                    .withIssuer("ktor-todo-app")
+                    .withAudience("ktor-todo-users")
+                    .build()
+            )
+            validate { credential ->
+                // Просто проверяем что токен корректно расшифровался
+                if (credential.payload.getClaim("userId").asInt() != null) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+            challenge { defaultScheme, realm ->
+                call.respond(HttpStatusCode.Unauthorized, "Токен недействителен или отсутствует")
+            }
+        }
+    }
+    
     install(plugin = StatusPages) {
         exception<Throwable> { call, cause ->
             call.respond(
@@ -41,8 +68,9 @@ fun Application.module() {
             )
         }
     }
+    
     routing {
-        authRoutes(authController)
-        taskRoutes(taskController)
+        configureAuthRoutes(authController)
+        configureTaskRoutes(taskController)
     }
 }
