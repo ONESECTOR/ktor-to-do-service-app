@@ -37,7 +37,7 @@ object JwtUtil {
                 userId = decodedJWT.getClaim("userId").asInt(),
                 username = decodedJWT.getClaim("username").asString()
             )
-        } catch (exception: JWTVerificationException) {
+        } catch (_: JWTVerificationException) {
             null
         }
     }

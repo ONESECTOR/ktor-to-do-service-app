@@ -48,7 +48,7 @@ fun Application.module() {
                     .build()
             )
             validate { credential ->
-                // Просто проверяем что токен корректно расшифровался
+                // Проверяем что токен корректно расшифровался
                 if (credential.payload.getClaim("userId").asInt() != null) {
                     JWTPrincipal(credential.payload)
                 } else {

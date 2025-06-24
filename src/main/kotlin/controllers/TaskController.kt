@@ -15,104 +15,159 @@ class TaskController {
     suspend fun getAll(call: ApplicationCall) {
         val currentUser = call.getCurrentUser()
         if (currentUser == null) {
-            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                message = "Пользователь не авторизован"
+            )
             return
         }
         
-        val tasks = taskService.getAll(currentUser.userId)
+        val tasks = taskService.getAll(userId = currentUser.userId)
         call.respond(tasks)
     }
 
     suspend fun getById(call: ApplicationCall) {
         val currentUser = call.getCurrentUser()
         if (currentUser == null) {
-            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                message = "Пользователь не авторизован"
+            )
             return
         }
         
         val id = call.parameters["id"]?.toIntOrNull()
         
         if (id == null) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid task ID")
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                message = "Invalid task ID"
+            )
             return
         }
         
-        val task = taskService.getById(id, currentUser.userId)
+        val task = taskService.getById(
+            taskId = id,
+            userId = currentUser.userId
+        )
         if (task != null) {
             call.respond(task)
         } else {
-            call.respond(HttpStatusCode.NotFound, "Task not found")
+            call.respond(
+                status = HttpStatusCode.NotFound,
+                message = "Task not found"
+            )
         }
     }
 
     suspend fun create(call: ApplicationCall) {
         val currentUser = call.getCurrentUser()
         if (currentUser == null) {
-            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                message = "Пользователь не авторизован"
+            )
             return
         }
         
         try {
             val inputTask = call.receive<Task>()
-            val createdTask = taskService.create(inputTask, currentUser.userId)
-            call.respond(HttpStatusCode.Created, createdTask)
-        } catch (e: Exception) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid task data")
+            val createdTask = taskService.create(task = inputTask, userId = currentUser.userId)
+            call.respond(status = HttpStatusCode.Created, message = createdTask)
+        } catch (_: Exception) {
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                message = "Invalid task data"
+            )
         }
     }
 
     suspend fun update(call: ApplicationCall) {
         val currentUser = call.getCurrentUser()
         if (currentUser == null) {
-            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                message = "Пользователь не авторизован"
+            )
             return
         }
         
         val id = call.parameters["id"]?.toIntOrNull()
         
         if (id == null) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid task ID")
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                message = "Invalid task ID"
+            )
             return
         }
         
         try {
             val updatedTask = call.receive<Task>()
-            val success = taskService.update(id, updatedTask, currentUser.userId)
+            val success = taskService.update(
+                taskId = id,
+                updatedTask,
+                userId = currentUser.userId
+            )
             
             if (success) {
-                val task = taskService.getById(id, currentUser.userId)
+                val task = taskService.getById(
+                    taskId = id,
+                    userId = currentUser.userId
+                )
                 if (task != null) {
                     call.respond(task)
                 } else {
-                    call.respond(HttpStatusCode.NotFound, "Task not found")
+                    call.respond(
+                        status = HttpStatusCode.NotFound,
+                        message = "Task not found"
+                    )
                 }
             } else {
-                call.respond(HttpStatusCode.NotFound, "Task not found")
+                call.respond(
+                    status = HttpStatusCode.NotFound,
+                    message = "Task not found"
+                )
             }
-        } catch (e: Exception) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid task data")
+        } catch (_: Exception) {
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                message = "Invalid task data"
+            )
         }
     }
 
     suspend fun delete(call: ApplicationCall) {
         val currentUser = call.getCurrentUser()
         if (currentUser == null) {
-            call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+            call.respond(
+                status = HttpStatusCode.Unauthorized,
+                message = "Пользователь не авторизован"
+            )
             return
         }
         
         val id = call.parameters["id"]?.toIntOrNull()
         
         if (id == null) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid task ID")
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                message = "Invalid task ID"
+            )
             return
         }
         
-        val success = taskService.delete(id, currentUser.userId)
+        val success = taskService.delete(
+            taskId = id,
+            userId = currentUser.userId
+        )
         if (success) {
             call.respond(HttpStatusCode.NoContent)
         } else {
-            call.respond(HttpStatusCode.NotFound, "Task not found")
+            call.respond(
+                status = HttpStatusCode.NotFound,
+                message = "Task not found"
+            )
         }
     }
 }
