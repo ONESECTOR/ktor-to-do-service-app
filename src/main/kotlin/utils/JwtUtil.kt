@@ -2,7 +2,6 @@ package com.example.utils
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTVerificationException
 import java.util.*
 
 object JwtUtil {
@@ -23,27 +22,4 @@ object JwtUtil {
             .withExpiresAt(Date(System.currentTimeMillis() + EXPIRATION_TIME))
             .sign(algorithm)
     }
-    
-    fun verifyToken(token: String): TokenPayload? {
-        return try {
-            val verifier = JWT.require(algorithm)
-                .withIssuer(ISSUER)
-                .withAudience(AUDIENCE)
-                .build()
-            
-            val decodedJWT = verifier.verify(token)
-            
-            TokenPayload(
-                userId = decodedJWT.getClaim("userId").asInt(),
-                username = decodedJWT.getClaim("username").asString()
-            )
-        } catch (_: JWTVerificationException) {
-            null
-        }
-    }
 }
-
-data class TokenPayload(
-    val userId: Int,
-    val username: String
-) 

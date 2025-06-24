@@ -20,16 +20,13 @@ class AuthService {
     fun register(username: String, password: String): AuthResult {
         return transaction {
             try {
-                // Проверяем что пользователь не существует
                 val existingUser = Users.selectAll().where { Users.username eq username }.singleOrNull()
                 if (existingUser != null) {
                     return@transaction AuthResult(false, "Пользователь уже существует")
                 }
                 
-                // Хэшируем пароль
                 val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
                 
-                // Создаем пользователя
                 val userId = Users.insert {
                     it[Users.username] = username
                     it[Users.password] = hashedPassword
@@ -70,24 +67,6 @@ class AuthService {
             } catch (e: Exception) {
                 AuthResult(false, "Ошибка при авторизации: ${e.message}")
             }
-        }
-    }
-    
-    fun validateToken(token: String): AuthResult {
-        val payload = JwtUtil.verifyToken(token)
-        return if (payload != null) {
-            // Дополнительно проверяем что пользователь еще существует
-            transaction {
-                val userExists = Users.selectAll().where { Users.id eq payload.userId }.count() > 0
-                if (userExists) {
-                    val user = User(id = payload.userId, username = payload.username, password = "")
-                    AuthResult(true, "Токен валиден", token, user)
-                } else {
-                    AuthResult(false, "Пользователь не найден")
-                }
-            }
-        } else {
-            AuthResult(false, "Неверный токен")
         }
     }
 }
